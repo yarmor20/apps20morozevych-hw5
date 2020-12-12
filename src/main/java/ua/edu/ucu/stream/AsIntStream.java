@@ -1,70 +1,118 @@
 package ua.edu.ucu.stream;
 
 import ua.edu.ucu.function.*;
+import ua.edu.ucu.iterators.FilterIterator;
+import ua.edu.ucu.iterators.FlatMapIterator;
+import ua.edu.ucu.iterators.MapIterator;
+import ua.edu.ucu.iterators.StreamIterator;
+
+import java.util.Comparator;
+import java.util.Iterator;
 
 public class AsIntStream implements IntStream {
+    private final Iterator<Integer> itemIterator;
 
-    private AsIntStream() {
-        // To Do
+    private AsIntStream(Iterator<Integer> iterator) {
+        this.itemIterator = iterator;
     }
 
     public static IntStream of(int... values) {
-        return null;
+        if (values.length == 0) {
+            throw new IllegalArgumentException(
+                    "Cannot process empty data stream.");
+        }
+        return new AsIntStream(new StreamIterator(values));
+    }
+
+    private void checkIfEmpty() throws IllegalArgumentException {
+        if (!itemIterator.hasNext()) {
+            throw new IllegalArgumentException("The stream is empty.");
+        }
     }
 
     @Override
     public Double average() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return (double) sum() / count();
+    }
+
+    private int findSpecialItem(Comparator<Integer> comparator,
+                                Integer toCompare) {
+        while (itemIterator.hasNext()) {
+            toCompare = comparator.compare(toCompare, itemIterator.next());
+        }
+        return toCompare;
     }
 
     @Override
     public Integer max() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        checkIfEmpty();
+        Comparator<Integer> maxComparator = (o1, o2) -> (o2 > o1) ? o2: o1;
+        return findSpecialItem(maxComparator, Integer.MIN_VALUE);
     }
 
     @Override
     public Integer min() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        checkIfEmpty();
+        Comparator<Integer> minComparator = (o1, o2) -> (o2 < o1) ? o2: o1;
+        return findSpecialItem(minComparator, Integer.MAX_VALUE);
     }
 
     @Override
     public long count() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        long size = 0;
+        while (itemIterator.hasNext()) {
+            itemIterator.next();
+            size++;
+        }
+        return size;
     }
 
     @Override
     public Integer sum() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        checkIfEmpty();
+        return reduce(0, (sum, x) -> sum += x);
     }
 
     @Override
     public IntStream filter(IntPredicate predicate) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return new AsIntStream(new FilterIterator(itemIterator, predicate));
     }
 
     @Override
     public void forEach(IntConsumer action) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        while (this.itemIterator.hasNext()) {
+            action.accept(this.itemIterator.next());
+        }
     }
 
     @Override
     public IntStream map(IntUnaryOperator mapper) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return new AsIntStream(new MapIterator(itemIterator, mapper));
     }
 
     @Override
     public IntStream flatMap(IntToIntStreamFunction func) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return new AsIntStream(new FlatMapIterator(itemIterator, func));
     }
 
     @Override
     public int reduce(int identity, IntBinaryOperator op) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        int res = identity;
+        while (this.itemIterator.hasNext()) {
+            res = op.apply(res, this.itemIterator.next());
+        }
+        return res;
     }
 
     @Override
     public int[] toArray() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        int[] items = new int[(int) count()];
+
+        int index = 0;
+        while (itemIterator.hasNext()) {
+            items[index++] = itemIterator.next();
+        }
+        return items;
     }
 
 }
