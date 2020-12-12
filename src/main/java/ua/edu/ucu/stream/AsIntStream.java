@@ -36,7 +36,7 @@ public class AsIntStream implements IntStream {
     }
 
     private int findSpecialItem(Comparator<Integer> comparator,
-                                Integer toCompare) {
+                                int toCompare) {
         while (itemIterator.hasNext()) {
             toCompare = comparator.compare(toCompare, itemIterator.next());
         }

@@ -3,6 +3,7 @@ package ua.edu.ucu.iterators;
 import ua.edu.ucu.function.IntPredicate;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class FilterIterator implements Iterator<Integer> {
     private final Iterator<Integer> iterator;
@@ -10,7 +11,8 @@ public class FilterIterator implements Iterator<Integer> {
     private boolean endOfIteration = false;
     private int next;
 
-    public FilterIterator(Iterator<Integer> defaultIterator, IntPredicate predicate) {
+    public FilterIterator(Iterator<Integer> defaultIterator,
+                          IntPredicate predicate) {
         this.iterator = defaultIterator;
         this.filter = predicate;
     }
@@ -31,7 +33,7 @@ public class FilterIterator implements Iterator<Integer> {
     @Override
     public Integer next() {
         if (endOfIteration) {
-            return null;
+            throw new NoSuchElementException("No next element.");
         }
         return this.next;
     }
